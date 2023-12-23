@@ -44,11 +44,6 @@ export class CFG{
                 for(let symbol of symbols){
                     if(symbol !== ""  && !this.#non_terminals.includes(symbol) && !this.#terminals.includes(symbol)){
 
-                        let temp = this.#non_terminals;
-                        console.log(symbol);
-                        console.log(typeof(symbol));
-                        console.log(this.#non_terminals.includes(symbol));
-                        console.log(temp.includes(symbol));
                         this.#terminals.push(symbol);
                     }
                 }
