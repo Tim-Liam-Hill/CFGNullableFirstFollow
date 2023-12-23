@@ -1,4 +1,4 @@
-import {CFG} from "./src/NullableFollowFirst.js"
+import {CFG, Nullable} from "./src/NullableFollowFirst.js"
 import fs from 'fs'
 
 if(process.argv.length != 3){
@@ -11,6 +11,6 @@ const input = fs.readFileSync(file_path).toString();
 
 const cfg = new CFG(input);
 cfg.print();
-
-
+const nullable = new Nullable(cfg);
+nullable.print();
 
