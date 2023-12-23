@@ -9,12 +9,8 @@ if(process.argv.length != 3){
 const file_path = process.argv[2] ;
 const input = fs.readFileSync(file_path).toString();
 
-console.log(input);
-
-let prods = input.replace(/\r/g,"").split("\n"); //need to replace the \r since end of lines is \r\n on current VSCode.
-console.log(prods);
-
 const cfg = new CFG(input);
+cfg.print();
 
 
 

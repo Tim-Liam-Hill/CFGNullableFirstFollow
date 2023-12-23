@@ -32,6 +32,7 @@ The 3 sets describing the nullable, first and follow for each non-terminal.
 * better names for files and classes
 * unit tests
 * Incorporate with other tools (NFA to DFA converter)
+* LOGGING!!!!
 
 Tests:
 
