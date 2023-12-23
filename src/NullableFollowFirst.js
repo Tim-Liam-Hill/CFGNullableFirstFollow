@@ -154,9 +154,10 @@ export class Nullable{
 
             for(let rhs of arr_RHS){
 
-                if(this.#isRHSNullable(rhs, cfg))
+                if(this.#isRHSNullable(rhs, cfg)){
                     this.#nullable[non_terminal] = true;
-                return;
+                    return;
+                }
             }
 
         }
@@ -164,24 +165,25 @@ export class Nullable{
 
     //Pulled out into a separate function since recursive function was getting messy.
     #isRHSNullable(rhs, cfg){
+
         let symbols = rhs.split(CFG.RHS_separator); //I knew making the separators class variables would come in handy
 
         for(let symbol of symbols){
-            if(cfg.getNonTerminals().includes(symbol)){
-                return false; //if this rhs contains a non_terminal then it cannot be nullable
+            if(cfg.getTerminals().includes(symbol)){
+                return false; //if this rhs contains a terminal then it cannot be nullable
             }
 
             //Dealing with a non_terminal. First, has it been procssed yet? if not, 
             //process it 
             if(this.#nullable[symbol] === undefined){
-                this.recursiveNullable(symbol, cfg);
+                this.#recursiveNullable(symbol, cfg);
             }
 
             if(!this.#nullable[symbol]){ //this non_terminal is not_nullable so we can break out
                 return false;
             }
         }
-        
+
         return true;
     }
 
