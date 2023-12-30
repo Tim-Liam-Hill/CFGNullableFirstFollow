@@ -5,8 +5,11 @@
   "description": "A helper program that, given a Context Free Grammar, calculates the Nullable, First and Follow sets for each non-terminal.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Timothy Hill",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "jest": "^29.7.0"
+  }
 }
