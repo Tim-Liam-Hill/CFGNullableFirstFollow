@@ -19,10 +19,17 @@ class CFG{
    // Also stores list of terminals and non-terminals
 
     constructor(str){
+
+        if(str.length == 0){
+            return;
+        }
+
         let prods = str.replace(/\r/g,"").split("\n"); //need to replace the \r since end of lines is \r\n on current VSCode.
         
         for(let prod of prods){
-            
+
+            if(prod.length == 0) //Handles the case where multiple newlines separate productions
+                continue;
             let arr = prod.split(CFG.prod_separator);
 
             if(! this.#non_terminals.includes(arr[0])){ //check if we have added this non_terminal yet
