@@ -1,5 +1,5 @@
-import {CFG, Nullable} from "./src/NullableFollowFirst.js"
-import fs from 'fs'
+const imports = require("./src/NullableFollowFirst.js")
+const fs = require('fs')
 
 if(process.argv.length != 3){
     console.log("Incorrect number of input arguments. Usage: node index.js <file_path>");
@@ -9,8 +9,8 @@ if(process.argv.length != 3){
 const file_path = process.argv[2] ;
 const input = fs.readFileSync(file_path).toString();
 
-const cfg = new CFG(input);
+const cfg = new imports.CFG(input);
 cfg.print();
-const nullable = new Nullable(cfg);
+const nullable = new imports.Nullable(cfg);
 nullable.print();
 

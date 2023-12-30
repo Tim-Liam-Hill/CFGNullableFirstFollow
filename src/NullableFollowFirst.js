@@ -2,7 +2,7 @@
 //Putting these 3 into the same file since they are all related and it seems overkill  
 //put them into separate files.
 
-export class CFG{
+class CFG{
 
     #productions = {}
     #terminals = []
@@ -72,7 +72,7 @@ export class CFG{
 
 }
 
-export class Nullable{
+class Nullable{
 
     #nullable = {}
 
@@ -196,4 +196,9 @@ export class Nullable{
     }
 }
 
+
+module.exports = {
+    CFG: CFG, 
+    Nullable: Nullable
+}
 
