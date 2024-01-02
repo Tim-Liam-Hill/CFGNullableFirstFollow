@@ -47,3 +47,36 @@ test('Multiple newlines', () => {
     expect({"T":["R","a T c"], "R":["","b R"]}).toMatchObject(cfg.getProductions());
 
 });
+
+//Nullable Tests -------------------------------------------------------------------------------
+
+test('Simple Nullable case', () => {
+    const grammar = "T:=R\nT:=a T c\nR:=\nR:=b R";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({"T":true, "R":true}).toMatchObject(nullable.getNullable());
+});
+
+test('Case where rules reference each other and nullable', () => {
+    const grammar = "A:=BB\nA:=C\nB:=A\nC:=w\nC:=";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({"A":true, "B":true, "C":true}).toMatchObject(nullable.getNullable());
+});
+
+
+test('Case where rules reference each other and not nullable', () => {
+    const grammar = "A:=BB\nA:=C\nB:=A\nC:=w\nC:=h";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({"A":false, "B":false, "C":false}).toMatchObject(nullable.getNullable());
+});
+
+test('Empty Grammar', () => {
+    const grammar = "";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({}).toMatchObject(nullable.getNullable());
+});
+
+

@@ -198,14 +198,30 @@ class Nullable{
         return this.#nullable[non_terminal];
     }
 
+    getNullable(){
+        return this.#nullable;
+    }
+
     print(){
         console.log("Nullable: ", this.#nullable);
+    }
+}
+
+class First{
+    #first = {}
+
+    constructor(cfg, nullable){
+        if(first === undefined){
+            this.#first = new Nullable(cfg);
+
+        }
     }
 }
 
 
 module.exports = {
     CFG: CFG, 
-    Nullable: Nullable
+    Nullable: Nullable,
+    First: First
 }
 
