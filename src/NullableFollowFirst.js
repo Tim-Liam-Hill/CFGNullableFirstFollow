@@ -223,21 +223,54 @@ class First{
     //          if nullable(non_terminal)
     //              don't break.
     //          else break
+    //Repeat until no more changes
+    // - we didn't have to do this for Nullable since we could directly check for the existence
+    // of the empty string first and correctly know from the start if symbol is nullable.
     constructor(cfg, nullable){ //Can't overload constructor so this is the next best thing.
         if(nullable === undefined){
             nullable = new Nullable(cfg);
         }
 
         const non_terminals = cfg.getNonTerminals();
+        let prev_first = {}
 
         for(let non_terminal of non_terminals){
+            prev_first[non_terminal] = [];
             this.#recursiveFirst(non_terminal,cfg,nullable);
+        }
+
+        while(! this.#prevEqualsFirst(prev_first)){
+            prev_first = JSON.parse(JSON.stringify(this.#first));
+            for(let non_terminal of non_terminals){
+                this.#recursiveFirst(non_terminal,cfg,nullable);
+            }
         }
 
         //sorting the firsts for each non_terminal to make testing possible 
         for(let non_terminal of non_terminals){
             this.#first[non_terminal] = this.#first[non_terminal].sort()
         }
+    }
+
+    #prevEqualsFirst(prev_first){
+
+        for(let non_terminal in this.#first){
+            let prev = prev_first[non_terminal].sort();
+            let curr = this.#first[non_terminal].sort();
+
+            if(prev.length  != curr.length){
+                return false;
+            }
+
+            for(let i in prev){
+                if(prev[i] != curr[i]){
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
     }
 
     //if first[non_terminal] is undefined we know that we haven't checked it yet.

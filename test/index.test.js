@@ -79,6 +79,32 @@ test('Empty Grammar', () => {
     expect({}).toMatchObject(nullable.getNullable());
 });
 
+/*
+A:=B
+A:=
+B:=C
+C:=A
+*/
+test('Cyclical grammar 1', () => {
+    const grammar = "A:=B\nA:=\nB:=C\nC:=A";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({"A": true, "B":true, "C": true}).toMatchObject(nullable.getNullable());
+});
+
+/*
+A:=B
+B:=C
+C:=A
+C:=
+*/
+test('Cyclical grammar 1', () => {
+    const grammar = "A:=B\n\nB:=C\nC:=A\nC:=";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    expect({"A": true, "B":true, "C": true}).toMatchObject(nullable.getNullable());
+});
+
 // First tests ---------------------------------------------------------------------------------
 
 test('Simple First case', () => {
@@ -91,4 +117,36 @@ test('Simple First case', () => {
 
 
 //Need to test cyclic grammars
+/*
+A:=B
+B:=A
+A:=axe
+B:=dolphin
+B:=C wizard
+C:= 
+C:=scary
+*/
+test('Cyclical grammar 1', () => {
+    const grammar = "A:=B\nB:=A\nA:=axe\nB:=dolphin\nB:=C wizard\nC:=\nC:=scary";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    const first = new imports.First(cfg,nullable);
+    expect({"A": ["axe","dolphin","scary","wizard"], "B": ["axe","dolphin","scary","wizard"], "C": ["scary"]}).toMatchObject(first.getFirst());
+});
+
+/*
+A:=B
+A:=axe
+B:=C
+B:=banana
+C:=A
+C:=scary
+*/
+test('Cyclical gramar 2', () => {
+    const grammar = "A:=B\nA:=axe\nB:=C\nB:=banana\nC:=A\nC:=scary";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    const first = new imports.First(cfg,nullable);
+    expect({"A": ["axe","banana","scary"], "B": ["axe","banana","scary"], "C": ["axe","banana","scary"]}).toMatchObject(first.getFirst());
+});
 
