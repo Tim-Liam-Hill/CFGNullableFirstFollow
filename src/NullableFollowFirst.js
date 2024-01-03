@@ -210,11 +210,88 @@ class Nullable{
 class First{
     #first = {}
 
-    constructor(cfg, nullable){
-        if(first === undefined){
-            this.#first = new Nullable(cfg);
-
+    //Algorithm:
+    //For each non-terminal:
+    //  For each production in that non-terminal:
+    //      set symbol = first_symbol
+    //      if terminal:
+    //          add this symbol to first;
+    //              break
+    //      else if non-terminal:
+    //          add_first = First(non_terminal)
+    //          add non_first to our first
+    //          if nullable(non_terminal)
+    //              don't break.
+    //          else break
+    constructor(cfg, nullable){ //Can't overload constructor so this is the next best thing.
+        if(nullable === undefined){
+            nullable = new Nullable(cfg);
         }
+
+        const non_terminals = cfg.getNonTerminals();
+
+        for(let non_terminal of non_terminals){
+            this.#recursiveFirst(non_terminal,cfg,nullable);
+        }
+
+        //sorting the firsts for each non_terminal to make testing possible 
+        for(let non_terminal of non_terminals){
+            this.#first[non_terminal] = this.#first[non_terminal].sort()
+        }
+    }
+
+    //if first[non_terminal] is undefined we know that we haven't checked it yet.
+    //BUT: how do we ensure that we don't leave out things if we have cyclic rules?
+    //
+    #recursiveFirst(non_terminal, cfg, nullable){
+        let prods = cfg.getProductions()[non_terminal];
+
+        if(this.#first[non_terminal] === undefined) //this is how we keep track of what non_terminals we have seen before
+            this.#first[non_terminal] = []; //and avoid infinite loops, similarly to how it was done for nullable
+
+        for(let prod of prods){
+
+            let symbols = prod.split(CFG.RHS_separator);
+            for(let symbol of symbols){
+
+                if(symbol == ""){ //nothing to do for epsilon transitions. 
+                    break;
+                }
+
+                if(cfg.getTerminals().includes(symbol)){
+
+                    if(!this.#first[non_terminal].includes(symbol)){
+                        this.#first[non_terminal].push(symbol);
+                    }
+
+                    break;
+                }
+                else{
+                    //need to check if non_terminal has been processed yet.
+                    if(this.#first[symbol] === undefined){
+                        this.#recursiveFirst(symbol,cfg,nullable);
+                    }
+
+                    for(let add_firsts of this.#first[symbol]){
+                        if(! this.#first[non_terminal].includes(add_firsts)){
+                            this.#first[non_terminal].push(add_firsts);
+                        }
+                    }
+
+                    if(!nullable.getNullable()[symbol]){
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    getFirst(){
+        return this.#first;
+    }
+
+    print(){
+        console.log(this.#first);
     }
 }
 

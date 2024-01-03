@@ -4,6 +4,7 @@
   "description": "A helper program that, given a Context Free Grammar, calculates the Nullable, First and Follow sets for each non-terminal.",
   "main": "index.js",
   "scripts": {
+    "run": "node index.js ./examples/Example1.cfg",
     "test": "jest --config=jest.config.mjs"
   },
   "author": "Timothy Hill",

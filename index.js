@@ -14,3 +14,6 @@ cfg.print();
 const nullable = new imports.Nullable(cfg);
 nullable.print();
 
+const first = new imports.First(cfg, nullable);
+first.print();
+

@@ -79,4 +79,16 @@ test('Empty Grammar', () => {
     expect({}).toMatchObject(nullable.getNullable());
 });
 
+// First tests ---------------------------------------------------------------------------------
+
+test('Simple First case', () => {
+    const grammar = "T:=R\nT:=a T c\nR:=\nR:=b R";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    const first = new imports.First(cfg,nullable);
+    expect({"T": ["a","b"], "R":["b"]}).toMatchObject(first.getFirst());
+});
+
+
+//Need to test cyclic grammars
 
