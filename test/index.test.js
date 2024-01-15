@@ -150,3 +150,42 @@ test('Cyclical gramar 2', () => {
     expect({"A": ["axe","banana","scary"], "B": ["axe","banana","scary"], "C": ["axe","banana","scary"]}).toMatchObject(first.getFirst());
 });
 
+//Follow Tests -------------------------------------------------------------------------------
+
+/*
+T:=R
+T:=a T c
+R:=
+R:=b R
+*/
+
+test('Simple Context Free Grammar with epsilon transitions', () => {
+    const grammar = "T:=R\nT:=a T c\nR:=\nR:=b R";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    const first = new imports.First(cfg, nullable);
+    const follow = new imports.Follow(cfg, nullable, first);
+    expect({"T": ["c"], "R": ["c"]}).toMatchObject(follow.getFollow());
+});
+
+/*
+A:=x G H F s T
+A:=Z x
+A:=w 
+G:=T r t 
+H:=
+H:=m
+F:=Z
+T:=fin
+Z:=bees
+*/
+
+test('More complex grammar: multiple non_terminals in one rule', () => {
+    const grammar = "A:=x G H F s T\nA:=Z x\nA:=w\nG:=T r t\nH:=\nH:=m\nF:=Z\nT:=fin\nZ:=bees";
+    const cfg = new imports.CFG(grammar);
+    const nullable = new imports.Nullable(cfg);
+    const first = new imports.First(cfg, nullable);
+    const follow = new imports.Follow(cfg, nullable, first);
+    expect({"A": [], "G": ["bees","m"], "H": ["bees"], "F":["s"], "T":["r"], "Z":["s","x"]}).toMatchObject(follow.getFollow());
+});
+

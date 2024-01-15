@@ -379,6 +379,8 @@ class Follow{
             for(let non_terminal of non_terminals){
                 this.#recursiveFollow(non_terminal, cfg, nullable, first);
             }
+            console.log("FOLLOW: ", this.#follow);
+            console.log("PREV_FOLLOW: ", prev_follow);
         }
         while(!this.#prevEqualsFollow(prev_follow));
 
@@ -415,8 +417,7 @@ class Follow{
         let all_null_till_end = true; 
         //somehow index became a string along the way???? 
         for(let k = parseInt(index) +1; k < rhs_arr.length; k = k +1){
-            console.log(k);
-            console.log(rhs_arr[k]);
+
             if(cfg.getTerminals().includes(rhs_arr[k])){
                 console.log("Symbol at index ", k, "terminal, adding to follow of ", rhs_arr[index]);
                 if(!this.#follow[rhs_arr[index]].includes(rhs_arr[k])){
@@ -428,9 +429,9 @@ class Follow{
             else{ //everything in the trailing non_terminal's follow get's added to current non_terminal's 
                     //follow. Break if not nullable
                 
-                for(let add_symbol in first.getFirst()[rhs_arr[k]]){
+                for(let add_symbol of first.getFirst()[rhs_arr[k]]){
                     if(! this.#follow[rhs_arr[index]].includes(add_symbol)){
-                        this.#follow[rhs_arr[k]].push(add_symbol);
+                        this.#follow[rhs_arr[index]].push(add_symbol);
                     }
                 }
 
