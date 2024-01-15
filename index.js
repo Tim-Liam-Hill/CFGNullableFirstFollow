@@ -17,3 +17,6 @@ nullable.print();
 const first = new imports.First(cfg, nullable);
 first.print();
 
+const follow = new imports.Follow(cfg, nullable, first);
+follow.print();
+

@@ -328,10 +328,165 @@ class First{
     }
 }
 
+class Follow{
+    #follow = {};
+
+    /*
+        The constructor handles iterating through each production. Algorithm is:
+
+        1. Make a copy of current follow set 
+        2. do while prev != current 
+        - For each RHS production, iterate through each symbol
+        - if symbol is terminal, skip 
+        - if symbol is non_terminal
+        -- Get following symbol  
+        -- if terminal, add it to the follow[non_terminal] 
+        -- if non_terminal, add follow[non_terminal] to follow[symbol]
+        --- if this non_terminal is nullable, continue to next symbol otherwise break 
+        - if we have case where non_terminal is at end OR a non_terminal is followed by one or more 
+        consecutive nullable non_terminals, the follow for that non_terminal contains all elements in 
+        follow of symbol on LHS of production
+    */
+    constructor(cfg, nullable, first){
+        if(nullable == undefined){
+            nullable = new Nullable(cfg);
+        }
+
+        if(first == undefined){
+            first = new First(cfg);
+        }
+
+        //For the sake of calculating follow, we need to add the rule:
+        // S:= <starting_non_terminal> $ 
+        // TODO: how will we ensure that the symbol we have isn't already a valid symbol?
+        // I think the onus should be on the user to ensure the grammar has all necessary symbols
+        //and productions (since it becomes non-trivial to write a program that creates the new start 
+        //symbol unless we start restricting symbols for the grammar, which is not something I want to 
+        //do). Other programs that use this as a dependency can handle the replacement of the start
+        //symbol since the context of the follow doesn't necessarily mean we are building a compiler
+        //(although why else would you need to know the follow for a CFG?)
+
+        let non_terminals = cfg.getNonTerminals();
+
+        //First initialize follow
+        let prev_follow = {};
+        for(let non_terminal of non_terminals){
+            this.#follow[non_terminal] = [];
+        }
+
+        do{
+            prev_follow = JSON.parse(JSON.stringify(this.#follow));
+            for(let non_terminal of non_terminals){
+                this.#recursiveFollow(non_terminal, cfg, nullable, first);
+            }
+        }
+        while(!this.#prevEqualsFollow(prev_follow));
+
+    }
+
+
+    #recursiveFollow(non_terminal, cfg, nullable, first){
+
+        console.log();
+        console.log("Recursive Follow for non_terminal: ", non_terminal, " --------------");
+
+        let prods = cfg.getProductions()[non_terminal];
+
+        for(let rhs of prods){
+            let rhs_arr = rhs.split(CFG.RHS_separator); 
+            console.log("Checking prod ", rhs_arr, " for non_terminal ", non_terminal);
+
+            for(let index in rhs_arr){
+                if(cfg.getNonTerminals().includes(rhs_arr[index])){ //only carry on for non_terminals{
+                    this.#iterateRHSFromIndex(non_terminal, index, rhs_arr, cfg, nullable, first);
+                }
+            }
+        }
+
+    }
+
+    //Helper method for the recursiveFollow function
+    //Its just cleaner to pull this out into its own function 
+    #iterateRHSFromIndex(non_terminal, index, rhs_arr, cfg, nullable, first){
+        
+        //need to check for case where non_terminal at end of RHS OR all the non_terminals 
+        //to the right of a non_terminal are nullable
+        console.log("Symbol at index ", index, " is a non_terminal, iterating through rest array");
+        let all_null_till_end = true; 
+        //somehow index became a string along the way???? 
+        for(let k = parseInt(index) +1; k < rhs_arr.length; k = k +1){
+            console.log(k);
+            console.log(rhs_arr[k]);
+            if(cfg.getTerminals().includes(rhs_arr[k])){
+                console.log("Symbol at index ", k, "terminal, adding to follow of ", rhs_arr[index]);
+                if(!this.#follow[rhs_arr[index]].includes(rhs_arr[k])){
+                    this.#follow[rhs_arr[index]].push(rhs_arr[k]);
+                }
+                all_null_till_end = false; 
+                break; //encountered a terminal so no need to look further. 
+            }
+            else{ //everything in the trailing non_terminal's follow get's added to current non_terminal's 
+                    //follow. Break if not nullable
+                
+                for(let add_symbol in first.getFirst()[rhs_arr[k]]){
+                    if(! this.#follow[rhs_arr[index]].includes(add_symbol)){
+                        this.#follow[rhs_arr[k]].push(add_symbol);
+                    }
+                }
+
+                if(! nullable.getNullable()[rhs_arr[k]]){
+                    all_null_till_end = false;
+                    break;
+                }
+
+            }
+        }
+
+        if(all_null_till_end){
+            console.log("Index ", index, " is either at end or followed by everything nullable");
+            for(let add_symb of this.#follow[non_terminal]){
+                if(! this.#follow[rhs_arr[index]].includes(add_symb)){
+                    this.#follow[rhs_arr[index]].push(add_symb);
+                }
+            }
+        }
+            
+    }
+
+    #prevEqualsFollow(prev_follow){
+
+        for(let non_terminal in this.#follow){
+            let prev = prev_follow[non_terminal].sort();
+            let curr = this.#follow[non_terminal].sort();
+
+            if(prev.length  != curr.length){
+                return false;
+            }
+
+            for(let i in prev){
+                if(prev[i] != curr[i]){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    print(){
+        console.log(this.#follow);
+    }
+
+    getFollow(){
+        return this.#follow;
+    }
+
+}
 
 module.exports = {
     CFG: CFG, 
     Nullable: Nullable,
-    First: First
+    First: First,
+    Follow: Follow
 }
 
