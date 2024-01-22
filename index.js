@@ -1,4 +1,5 @@
 const imports = require("./src/NullableFollowFirst.js")
+const SLR = require("./src/SLRTable.js")
 const fs = require('fs')
 
 if(process.argv.length != 3){
@@ -19,4 +20,7 @@ first.print();
 
 const follow = new imports.Follow(cfg, nullable, first);
 follow.print();
+
+console.log();
+const slr = new SLR.SLRTable(cfg);
 

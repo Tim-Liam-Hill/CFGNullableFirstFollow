@@ -1,7 +1,7 @@
 const imports = require("../src/NullableFollowFirst.js")
 
 //CFG Test ------------------------------------------------------------------
-
+//TODO: add tests for start symbol 
 test('Simple Context Free Grammar with epsilon transitions', () => {
     const grammar = "T:=R\nT:=a T c\nR:=\nR:=b R";
     const cfg = new imports.CFG(grammar);

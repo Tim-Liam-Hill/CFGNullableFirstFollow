@@ -4,9 +4,10 @@
 
 class CFG{
 
-    #productions = {}
-    #terminals = []
-    #non_terminals = []
+    #productions = {};
+    #terminals = [];
+    #non_terminals = [];
+    #start_symbol = null;
     static prod_separator = ":="; //symbol that separates the LHS from RHS of production
     static RHS_separator = " "; //symbol that separates all symbols on RHS of production
 
@@ -31,6 +32,9 @@ class CFG{
             if(prod.length == 0) //Handles the case where multiple newlines separate productions
                 continue;
             let arr = prod.split(CFG.prod_separator);
+            if(this.#start_symbol === null){
+                this.#start_symbol = arr[0];
+            }
 
             if(! this.#non_terminals.includes(arr[0])){ //check if we have added this non_terminal yet
                 this.#productions[arr[0]] = [];         //if not, add an empty entry for it in the dict
@@ -69,6 +73,10 @@ class CFG{
     
     getNonTerminals(){
         return this.#non_terminals;
+    }
+
+    getStartSymbol(){
+        return this.#start_symbol;
     }
 
     print(){
@@ -379,8 +387,8 @@ class Follow{
             for(let non_terminal of non_terminals){
                 this.#recursiveFollow(non_terminal, cfg, nullable, first);
             }
-            console.log("FOLLOW: ", this.#follow);
-            console.log("PREV_FOLLOW: ", prev_follow);
+            //console.log("FOLLOW: ", this.#follow);
+            //console.log("PREV_FOLLOW: ", prev_follow);
         }
         while(!this.#prevEqualsFollow(prev_follow));
 
@@ -389,14 +397,14 @@ class Follow{
 
     #recursiveFollow(non_terminal, cfg, nullable, first){
 
-        console.log();
-        console.log("Recursive Follow for non_terminal: ", non_terminal, " --------------");
+        //console.log();
+        //console.log("Recursive Follow for non_terminal: ", non_terminal, " --------------");
 
         let prods = cfg.getProductions()[non_terminal];
 
         for(let rhs of prods){
             let rhs_arr = rhs.split(CFG.RHS_separator); 
-            console.log("Checking prod ", rhs_arr, " for non_terminal ", non_terminal);
+            //console.log("Checking prod ", rhs_arr, " for non_terminal ", non_terminal);
 
             for(let index in rhs_arr){
                 if(cfg.getNonTerminals().includes(rhs_arr[index])){ //only carry on for non_terminals{
@@ -413,13 +421,13 @@ class Follow{
         
         //need to check for case where non_terminal at end of RHS OR all the non_terminals 
         //to the right of a non_terminal are nullable
-        console.log("Symbol at index ", index, " is a non_terminal, iterating through rest array");
+        //console.log("Symbol at index ", index, " is a non_terminal, iterating through rest array");
         let all_null_till_end = true; 
         //somehow index became a string along the way???? 
         for(let k = parseInt(index) +1; k < rhs_arr.length; k = k +1){
 
             if(cfg.getTerminals().includes(rhs_arr[k])){
-                console.log("Symbol at index ", k, "terminal, adding to follow of ", rhs_arr[index]);
+                //console.log("Symbol at index ", k, "terminal, adding to follow of ", rhs_arr[index]);
                 if(!this.#follow[rhs_arr[index]].includes(rhs_arr[k])){
                     this.#follow[rhs_arr[index]].push(rhs_arr[k]);
                 }
@@ -444,7 +452,7 @@ class Follow{
         }
 
         if(all_null_till_end){
-            console.log("Index ", index, " is either at end or followed by everything nullable");
+            //console.log("Index ", index, " is either at end or followed by everything nullable");
             for(let add_symb of this.#follow[non_terminal]){
                 if(! this.#follow[rhs_arr[index]].includes(add_symb)){
                     this.#follow[rhs_arr[index]].push(add_symb);
