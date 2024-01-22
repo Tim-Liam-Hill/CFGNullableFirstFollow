@@ -2,6 +2,10 @@
 
 A helper program that, given a Context Free Grammar, calculates the Nullable, First and Follow sets for each non-terminal.
 
+This project has now evolved a bit: It includes code copied over from my NFAtoDFA converter. The idea is to create a SLR table for a given CFG, because that is very useful for the programming language I am creating.
+
+Yes, I could have used ANTLR or something similar but I wanted to do this myself for fun. Yay. 
+
 ## Input format
 
 The input should be a Context free grammar in which:
