@@ -38,6 +38,8 @@ class SLRTable{
         TODO: how do we know the start symbol?? Do we need additional info for this?
         Probably. That info doesn't really belong in the CFG does it?? We could 
         technically calculate it/store it there. 
+
+        TODO: Writeup full algorithm nicely and make code cleaner. 
     */
     #createInitialNFA(){
         
@@ -53,33 +55,33 @@ class SLRTable{
 
         for(let non_terminal in prods){
             
-            //add prod_number to the dict (don't increment here, we increment later)
-            if(prod_number_dict[non_terminal] === undefined){
-                prod_number_dict[non_terminal] = [this.#state_count.toString()];
+            for(let prod of this.#cfg.getProductions()[non_terminal] ){
+
+                //add prod_number to the dict (don't increment here, we increment later)
+                if(prod_number_dict[non_terminal] === undefined){
+                    prod_number_dict[non_terminal] = [this.#state_count.toString()];
+                }
+                else{
+                    prod_number_dict[non_terminal].push(this.#state_count.toString());
+                }
+
+                let symbols = prod.split(Lang.CFG.RHS_separator);
+                for(let symbol of symbols){
+                    
+                    this.#nfa["states"][this.#state_count.toString()] = {};
+                    this.#nfa["states"][this.#state_count.toString()][symbol] = (this.#state_count + 1).toString();
+                     
+                    this.#state_count += 1;
+                }
+                this.#nfa["states"][this.#state_count.toString()] = {}; //need to add the accept state at the end of each mini nfa 
+                this.#nfa["accept"].push(this.#state_count.toString());
+                this.#state_count += 1; //need to increment again! Otherwise we will add transitions to the previous accept state
             }
-            else{
-                prod_number_dict[non_terminal].push(this.#state_count.toString());
-            }
-            this.#createStatesForNonTerminal(non_terminal);
         }
 
         this.#nfa["start"] = prod_number_dict[this.#cfg.getStartSymbol()][0];
         console.log(this.#nfa);
-    }
-
-    #createStatesForNonTerminal(non_terminal){
-        for(let prod of this.#cfg.getProductions()[non_terminal] ){
-            let symbols = prod.split(Lang.CFG.RHS_separator);
-            for(let symbol of symbols){
-                
-                this.#nfa["states"][this.#state_count.toString()] = {};
-                this.#nfa["states"][this.#state_count.toString()][symbol] = (this.#state_count + 1).toString();
-                 
-                this.#state_count += 1;
-            }
-            this.#nfa["states"][this.#state_count.toString()] = {}; //need to add the accept state at the end of each mini nfa 
-            this.#nfa["accept"].push(this.#state_count.toString());
-        }
+        console.log(prod_number_dict);
     }
 
     #addNFAEpsilonTransitions(){
