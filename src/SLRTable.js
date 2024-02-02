@@ -22,7 +22,8 @@ class SLRTable{
         this.#follow = new Lang.Follow(cfg_, this.#nullable, this.#first);
 
         this.#createInitialNFA();
-
+        this.#nfa = new FSA.FSA(this.#nfa);
+        this.#dfa = this.#nfa.convert();
     }
 
     /*
@@ -102,6 +103,10 @@ class SLRTable{
                 }
             }
         }
+    }
+
+    #createSLRTable(){
+        
     }
 }
 

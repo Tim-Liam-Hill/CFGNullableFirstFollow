@@ -24,3 +24,47 @@ follow.print();
 console.log();
 const slr = new SLR.SLRTable(cfg);
 
+//Best thing to do here is to take some small example grammars and by hand construct the resulting 
+//SLR table (using the tools that already exist to calculate nullable, first, follow)
+//Then let's ensure that the resultant table can parse the language as expected
+//Use these as base test cases for the SLR parser.
+//Languages that I can think of:
+/*
+
+1) The language of well-balanced paranthesis
+S^:=S
+S:=(S) S
+S:=
+
+The above is definitely ambiguous but does it work?
+can it generate:
+() -> yes 
+()()() -> yes
+((()()))(()) -> yes 
+
+Is the above actually ambiguous?? -> I don't think so 
+
+
+Below shouldn't be ambiguous
+S^:=S
+S:=(Inner) Outer
+S:=
+Inner:=S 
+Outer:=S
+
+
+
+
+2) Language Expression
+S:=Exp
+Exp → Exp+Exp2
+Exp → Exp-Exp2
+Exp → Exp2
+Exp2 → Exp2*Exp3
+Exp2 → Exp2/Exp3
+Exp2 → Exp3
+Exp3 → num
+Exp3 → (Exp)
+
+*/
+
