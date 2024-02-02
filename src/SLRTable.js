@@ -23,7 +23,6 @@ class SLRTable{
 
         this.#createInitialNFA();
 
-
     }
 
     /*
@@ -45,9 +44,10 @@ class SLRTable{
         
         
         let prod_number_dict = {}; //This dictionary will be used to cross reference 
-        //which state_counts have been assigned to each non-terminal which is used 
+        //which state_counts have been assigned to each non-terminal production which is used 
         //to add the epsilon transitions after initial NFA has been created. There should be a key 
         //for each non-terminal
+        //TODO: explain the above better
         const prods = this.#cfg.getProductions();
         this.#nfa = {};
         this.#nfa["states"] = {};
@@ -69,7 +69,7 @@ class SLRTable{
                 for(let symbol of symbols){
                     
                     this.#nfa["states"][this.#state_count.toString()] = {};
-                    this.#nfa["states"][this.#state_count.toString()][symbol] = (this.#state_count + 1).toString();
+                    this.#nfa["states"][this.#state_count.toString()][symbol] = [(this.#state_count + 1).toString() ];
                      
                     this.#state_count += 1;
                 }
@@ -80,12 +80,28 @@ class SLRTable{
         }
 
         this.#nfa["start"] = prod_number_dict[this.#cfg.getStartSymbol()][0];
-        console.log(this.#nfa);
-        console.log(prod_number_dict);
+        this.#addNFAEpsilonTransitions(prod_number_dict);
     }
 
-    #addNFAEpsilonTransitions(){
+    /*
+        Anytime there is a transition on a Non-terminal for any state, there must be epsilon transitions to every other state
+        which is the start state for some production for which that non-terminal is on the LHS. 
+    */
+    #addNFAEpsilonTransitions(prod_number_dict){
+        for(let nfa_state in this.#nfa.states){
+            for(let transition_symbol in this.#nfa.states[nfa_state]){
+                if( this.#cfg.getNonTerminals().includes(transition_symbol) ){
 
+                    if(this.#nfa.states[nfa_state][""] === undefined){//first check if there are already epsilon transitions so we don't override them by creating empty arr 
+                        this.#nfa.states[nfa_state][""] = [];
+                    }
+                    
+                    for(let state_num of prod_number_dict[transition_symbol] ){
+                        this.#nfa.states[nfa_state][""].push(state_num);
+                    }
+                }
+            }
+        }
     }
 }
 
