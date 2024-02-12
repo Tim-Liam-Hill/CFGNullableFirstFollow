@@ -38,6 +38,7 @@ class FSA{
      *    for each relevent symbol 
      * -- push each of these new states onto stack IFF they have not been processed 
      * - calculate new accepts: if name includes an accept state bamn we good. 
+     * 
      * @returns The equivalent DFA 
      */
     convert(){
@@ -47,25 +48,30 @@ class FSA{
         let stack = [new_start];
 
         while(stack.length !== 0){
-            let curr_states = stack.pop(); //its an array of at least length 1 containings strings that are names of States
-            let new_transitions = JSON.parse(JSON.stringify(this.#alphabet)); //make a deep clone
-            //console.log(curr_states); 
-
-            for(let state of curr_states){ //state is one of the states of the NFA comprising a new state 'curr_states' 
-
-                for(let symbol in this.#states[state]){ //Iterates through each symbol that this state has transitions on.
+            let curr_states = stack.pop(); //curr states = array of state names from the NFA that will make up a new state in the DFA
+            let new_transitions = JSON.parse(JSON.stringify(this.#alphabet)); //make a deep clone of alphabet
+       
+            for(let state of curr_states){ //for each of the comprising NFA substates that make up this single DFA state
+                                           //we need to determine the transitions. Each substate adds a portion eg:
+                                           //if state 0 is a substate of the new state 0-1-2 and 0 has a transition 
+                                           //0 -> 5 on symbol ! then 0-1-2 we add the epsilon transition states 
+                                           //to a new transition for state 0-1-2 (and keep adding to this for every substate)
+                                           //we iterate through. TODO: explain this better. 
+                                           
+                for(let symbol in this.#states[state]){ //Iterates through each symbol that this state (one of the substates of the new state) has transitions on.
 
                     let states_to_add = this.#getReachableStates(this.#states[state][symbol], state, symbol);
-                    //console.log("For state: ", state, " and symbol: ", symbol, " new transitions are ", states_to_add)
+                    console.log("For state: ", state, " and symbol: ", symbol, " new transitions are ", states_to_add)
                     
-                    //There is an issue somewhere here, we are adding states individually that should be 
-                    //concatenated together I believe
-                    
-                    if(! new_transitions[symbol].includes(states_to_add.join("-")))
-                        new_transitions[symbol].push(states_to_add.join("-"));
-                    
+                    for(let dest_state of states_to_add){
+                        if(! new_transitions[symbol].includes(dest_state)){
+                            new_transitions[symbol].push(dest_state); 
+                        }
+                    }
                 }
             }
+
+            console.log("After iterating all substates of ", curr_states, " new transitions for this state will be ", new_transitions);
 
             for(let symbol in new_transitions){//make sure the list of states are sorted, then push them onto stack
                 new_transitions[symbol] = new_transitions[symbol].sort();
@@ -82,21 +88,17 @@ class FSA{
                         stack.push(new_transitions[symbol]);
                 }
             }
-            //console.log("After processing ", curr_states.join(","), " stack is ", stack)
-            //console.log("------------------------------------") 
-            //console.log()
 
-
-            //console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
+            console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
             ans[curr_states.join("-")] = new_transitions;
-            //console.log(ans)
+            console.log(ans);
             
         }
         
         //need to remove all epsilonn transitions
-        ans = this.#removeEpsilonTransitions(ans)
+        ans = this.#removeEpsilonTransitions(ans);
         //console.log(ans)
-        let new_accept = this.#calculateAcceptStates(ans)
+        let new_accept = this.#calculateAcceptStates(ans);
 
         return new FSA({"start": new_start.join("-"), "states": ans, "accept": new_accept})
     }
@@ -122,8 +124,8 @@ class FSA{
      * @returns an array representing epsilon closure
      */
     #epsilonClosure(state){
-        var closure = []
-        var stack = [state]
+        var closure = [];
+        var stack = [state];
 
         let i = 0;
         
@@ -133,7 +135,7 @@ class FSA{
             
             if(this.#states[next_state][""] !== undefined){
                 if(typeof(this.#states[next_state][""]) === "string" && !closure.includes(this.#states[next_state][""])){ //only one "" transition
-                    stack.push(this.#states[next_state][""])
+                    stack.push(this.#states[next_state][""]);
                 }
                 else { // multiple "" transitions 
                     for(let s of this.#states[next_state][""])
@@ -151,32 +153,35 @@ class FSA{
      * @param {*} states an arrray of state names for which we calculate epsilon closure
      */
     #getReachableStates(states, state, symbol){
-        let ans = []
+        console.log(states,state, symbol);
+        let ans = [];
 
         if(typeof(states) === "string"){
-            ans.push(states)
+            ans.push(states); 
         }
         else{
-            ans = states;
+            //ans = states; //THIS WAS AN ISSUE: was not making a deep copy to if I made changes to ans it would impact states, which refers to original NFA object
+            ans = JSON.parse(JSON.stringify(states)); //There is likely a better way of cloning, but this makes me feel like a Javascript developer/hacker
         }
         
         if(symbol === "") //state can reach itself on epsilon transition
-            ans.push(state)
-
+            ans.push(state);
+        //Below we get list of elements from potential epsilon closure after transitioning on 
+        //Symbol in a separate array to add to the answer
         let temp = []
         for(let s of ans){
-            let closure = this.#epsilonClosure(s)
+            let closure = this.#epsilonClosure(s);
             for(let i of closure){
-                if(!ans.includes(i) && !temp.includes(i)){ //I don't like the 'of' and 'in' iteration methods in java. They are too easy to confuse
-                    temp.push(i) 
+                if(!ans.includes(i) && !temp.includes(i)){ //I don't like the 'of' and 'in' iteration methods in Javascript. They are too easy to confuse
+                    temp.push(i);                          //Only add states that aren't already included in the 
                 }
             }
         }
 
         while(temp.length != 0)
-            ans.push(temp.pop())
+            ans.push(temp.pop());
 
-        return ans.sort();
+        return ans.sort(); //names matter so ensuring elements are sorted means the name of the state is always consistent
     }
 
     #calculateAlphabet(){

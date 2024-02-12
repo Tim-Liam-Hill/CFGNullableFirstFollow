@@ -21,6 +21,7 @@ first.print();
 const follow = new imports.Follow(cfg, nullable, first);
 follow.print();
 
+console.log("-----SLR TABLE-------");
 console.log();
 const slr = new SLR.SLRTable(cfg);
 
@@ -32,25 +33,9 @@ const slr = new SLR.SLRTable(cfg);
 /*
 
 1) The language of well-balanced paranthesis
-S^:=S
+S^:=S $
 S:=(S) S
 S:=
-
-The above is definitely ambiguous but does it work?
-can it generate:
-() -> yes 
-()()() -> yes
-((()()))(()) -> yes 
-
-Is the above actually ambiguous?? -> I don't think so 
-
-
-Below shouldn't be ambiguous
-S^:=S
-S:=(Inner) Outer
-S:=
-Inner:=S 
-Outer:=S
 
 
 

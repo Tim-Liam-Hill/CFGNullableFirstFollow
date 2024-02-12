@@ -22,8 +22,12 @@ class SLRTable{
         this.#follow = new Lang.Follow(cfg_, this.#nullable, this.#first);
 
         this.#createInitialNFA();
+        
         this.#nfa = new FSA.FSA(this.#nfa);
         this.#dfa = this.#nfa.convert();
+        this.#nfa.show();
+        this.#dfa.show();
+        
     }
 
     /*
@@ -89,14 +93,22 @@ class SLRTable{
         which is the start state for some production for which that non-terminal is on the LHS. 
     */
     #addNFAEpsilonTransitions(prod_number_dict){
-        for(let nfa_state in this.#nfa.states){
-            for(let transition_symbol in this.#nfa.states[nfa_state]){
-                if( this.#cfg.getNonTerminals().includes(transition_symbol) ){
+        
+        //So at this point we are correct with prod_number_dict and the mini nfa's created 
+        //so the error is coming in below
+
+        for(let nfa_state in this.#nfa.states){ //for every state
+
+            for(let transition_symbol in this.#nfa.states[nfa_state]){ //we loop through every symbol for which this state has valid transition
+
+                if( this.#cfg.getNonTerminals().includes(transition_symbol) ){ //if that symbol is a nonTerminal then we need 
+                                                                               //to add epsilon transition to the other states that define 
+                                                                               //the mini chains for productions for which that non-terminal is on the RHS
 
                     if(this.#nfa.states[nfa_state][""] === undefined){//first check if there are already epsilon transitions so we don't override them by creating empty arr 
                         this.#nfa.states[nfa_state][""] = [];
                     }
-                    
+   
                     for(let state_num of prod_number_dict[transition_symbol] ){
                         this.#nfa.states[nfa_state][""].push(state_num);
                     }
