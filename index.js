@@ -53,3 +53,4 @@ Exp3 → (Exp)
 
 */
 
+//WE WILL ADD ACCEPT WHEN P = 1 not when P=1

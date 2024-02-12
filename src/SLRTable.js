@@ -53,6 +53,8 @@ class SLRTable{
         //to add the epsilon transitions after initial NFA has been created. There should be a key 
         //for each non-terminal
         //TODO: explain the above better
+        //TODO: need to keep track of which NFA states are accept states for mini-nfa's that map to 
+        //productions 
         const prods = this.#cfg.getProductions();
         this.#nfa = {};
         this.#nfa["states"] = {};

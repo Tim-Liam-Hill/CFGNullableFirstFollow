@@ -61,7 +61,7 @@ class FSA{
                 for(let symbol in this.#states[state]){ //Iterates through each symbol that this state (one of the substates of the new state) has transitions on.
 
                     let states_to_add = this.#getReachableStates(this.#states[state][symbol], state, symbol);
-                    console.log("For state: ", state, " and symbol: ", symbol, " new transitions are ", states_to_add)
+                    //console.log("For state: ", state, " and symbol: ", symbol, " new transitions are ", states_to_add)
                     
                     for(let dest_state of states_to_add){
                         if(! new_transitions[symbol].includes(dest_state)){
@@ -71,7 +71,7 @@ class FSA{
                 }
             }
 
-            console.log("After iterating all substates of ", curr_states, " new transitions for this state will be ", new_transitions);
+            //console.log("After iterating all substates of ", curr_states, " new transitions for this state will be ", new_transitions);
 
             for(let symbol in new_transitions){//make sure the list of states are sorted, then push them onto stack
                 new_transitions[symbol] = new_transitions[symbol].sort();
@@ -89,9 +89,9 @@ class FSA{
                 }
             }
 
-            console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
+            //console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
             ans[curr_states.join("-")] = new_transitions;
-            console.log(ans);
+            //console.log(ans);
             
         }
         
@@ -153,7 +153,7 @@ class FSA{
      * @param {*} states an arrray of state names for which we calculate epsilon closure
      */
     #getReachableStates(states, state, symbol){
-        console.log(states,state, symbol);
+
         let ans = [];
 
         if(typeof(states) === "string"){
