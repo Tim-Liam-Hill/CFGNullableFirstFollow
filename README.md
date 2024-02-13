@@ -48,3 +48,8 @@ For the SLR table:
 * how do we want it to determine first state?
 
 The first state for the nfa should correlate to the start state of the CFG, so maybe we need to add some extra info into how we code our CFG. The simplest way to do this is to just assume the LHS symbol of the first line of the input file is the start symbol and take things from there.
+
+
+* Fix the private variable aspect of FSA and related classes
+
+There isn't really a point to having private variables with get methods in the FSA class if we are returning references. This will lead to bugs if any other code alters the returned object. Either change the getters somehow or just remove the getters entirely and treat these classes more as structs.

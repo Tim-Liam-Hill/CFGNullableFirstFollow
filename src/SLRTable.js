@@ -14,6 +14,7 @@ class SLRTable{
     #nfa = null; 
     #dfa = null; 
     #state_count = 0;
+    #slr_table = null;
 
     constructor(cfg_){
         this.#cfg = cfg_;
@@ -25,8 +26,7 @@ class SLRTable{
         
         this.#nfa = new FSA.FSA(this.#nfa);
         this.#dfa = this.#nfa.convert();
-        this.#nfa.show();
-        this.#dfa.show();
+        this.#createSLRTable();
         
     }
 
@@ -119,9 +119,32 @@ class SLRTable{
         }
     }
 
+    /**
+     * To build the SLR Table:
+     * 1) Need a big 2D table: x axis DFA states y axis symbols in the alphabet
+     * 2) for each state:
+     *      2.1) For each terminal that that DFA state transitions on, add a shift action at [state][nonterminal] = shift (next_state)
+     *      2.2) For each non-terminal that that DFA state transitions on, add a go action at [state][nonterminal] = shift (next_state)
+    *  3) Add reduce rules somehow
+    * Make sure we don't over-ride any previous rules (if we do it means ambiguous grammar/not SLR parsable)
+    */
     #createSLRTable(){
+        this.#dfa.show();
+        this.#slr_table = {};
+
+        for(let state in this.#dfa.getStates()){
+            this.#slr_table[state] = JSON.parse(JSON.stringify(this.#dfa.getAlphabet()));
+            
+            for(let symb in this.#dfa.getStates()[state]){
+                console.log(symb, " ", this.#dfa.getStates()[state][symb]);
+            }
         
+        }
+        
+        console.log(this.#slr_table);
     }
+
+
 }
 
 module.exports = {

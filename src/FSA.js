@@ -87,9 +87,10 @@ class FSA{
                     if(!in_stack && !new_transitions[symbol].length == 0) // extra check to make sure we don't push empty state on.
                         stack.push(new_transitions[symbol]);
                 }
+                new_transitions[symbol] = [new_transitions[symbol].sort().join("-")]; //Now that we are done with all of our checks, we join the set of states
             }
 
-            //console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
+            console.log("New Transitions for state: ", curr_states, " are: ",  new_transitions)
             ans[curr_states.join("-")] = new_transitions;
             //console.log(ans);
             
@@ -223,6 +224,13 @@ class FSA{
         console.log("Transitions: ", this.#states);
     }
 
+    /**
+     * 
+     * TODO: do these get functions return references or copies?
+     * Since they return references there is no point making these variables 
+     * private (since they can actually be change outside of this class)
+     * THIS NEEDS TO BE REWORKED.
+     */
     getStates(){
         return this.#states;
     }
@@ -233,6 +241,10 @@ class FSA{
 
     getStart(){
         return this.#start;
+    }
+
+    getAlphabet(){
+        return this.#alphabet;
     }
 
 }
