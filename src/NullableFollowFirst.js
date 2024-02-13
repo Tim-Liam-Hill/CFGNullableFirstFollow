@@ -4,10 +4,10 @@
 
 class CFG{
 
-    #productions = {};
-    #terminals = [];
-    #non_terminals = [];
-    #start_symbol = null;
+    productions = {};
+    terminals = [];
+    non_terminals = [];
+    start_symbol = null;
     static prod_separator = ":="; //symbol that separates the LHS from RHS of production
     static RHS_separator = " "; //symbol that separates all symbols on RHS of production
 
@@ -32,15 +32,15 @@ class CFG{
             if(prod.length == 0) //Handles the case where multiple newlines separate productions
                 continue;
             let arr = prod.split(CFG.prod_separator);
-            if(this.#start_symbol === null){
-                this.#start_symbol = arr[0];
+            if(this.start_symbol === null){
+                this.start_symbol = arr[0];
             }
 
-            if(! this.#non_terminals.includes(arr[0])){ //check if we have added this non_terminal yet
-                this.#productions[arr[0]] = [];         //if not, add an empty entry for it in the dict
-                this.#non_terminals.push(arr[0]);       //and add it to list of terminals
+            if(! this.non_terminals.includes(arr[0])){ //check if we have added this non_terminal yet
+                this.productions[arr[0]] = [];         //if not, add an empty entry for it in the dict
+                this.non_terminals.push(arr[0]);       //and add it to list of terminals
             }
-            this.#productions[arr[0]].push(arr[1]);
+            this.productions[arr[0]].push(arr[1]);
         }
 
         //Now we can calculate the non_terminals (technically a more efficient way of doing this but we don't need 
@@ -48,14 +48,14 @@ class CFG{
         //the jist is for each production, we get each RHS. Split string to get individual symbols
         //add to terminals IFF not '' and not in non_terminals (and not already in terminals)
 
-        for(let non_terminal in this.#productions){ //the joy of iterating through dictionaries
-            for(let rhs of this.#productions[non_terminal]){
+        for(let non_terminal in this.productions){ //the joy of iterating through dictionaries
+            for(let rhs of this.productions[non_terminal]){
                 let symbols = rhs.split(CFG.RHS_separator);
 
                 for(let symbol of symbols){
-                    if(symbol !== ""  && !this.#non_terminals.includes(symbol) && !this.#terminals.includes(symbol)){
+                    if(symbol !== ""  && !this.non_terminals.includes(symbol) && !this.terminals.includes(symbol)){
 
-                        this.#terminals.push(symbol);
+                        this.terminals.push(symbol);
                     }
                 }
             }
@@ -64,25 +64,37 @@ class CFG{
     }
 
     getProductions(){
-        return this.#productions;
+        return this.productions;
     }
 
     getTerminals(){
-        return this.#terminals;
+        return this.terminals;
     }
     
     getNonTerminals(){
-        return this.#non_terminals;
+        return this.non_terminals;
     }
 
     getStartSymbol(){
-        return this.#start_symbol;
+        return this.start_symbol;
     }
 
     print(){
-        console.log("Producions: ", this.#productions);
-        console.log("Non-Terminals: ", this.#non_terminals);
-        console.log("Terminals: ", this.#terminals);
+        console.log("Producions: ", this.productions);
+        console.log("Non-Terminals: ", this.non_terminals);
+        console.log("Terminals: ", this.terminals);
+        console.log("Start Symbol: ", this.start_symbol);
+    }
+
+    deepCopy(){
+        let n = new CFG("");
+        n.non_terminals = JSON.parse(JSON.stringify(this.non_terminals));
+        n.terminals = JSON.parse(JSON.stringify(this.terminals));
+        n.productions = JSON.parse(JSON.stringify(this.productions));
+        n.start_symbol = JSON.parse(JSON.stringify(this.start_symbol));
+
+        return n;
+
     }
 
 }

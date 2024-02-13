@@ -53,4 +53,12 @@ Exp3 → (Exp)
 
 */
 
-//WE WILL ADD ACCEPT WHEN P = 1 not when P=1
+//CHANGES TO MAKE:
+//Constructor for SLR table must add a new start rule to the CFG??
+//-we know that we can concat all terminals and non_terminals together to get unique name for start state
+//or just randomly generate it? 
+// Then we need to do the same for the end symbol
+//Add a rule to CFG from new start to old start and update start state
+//Then in the SLR table construction make a deep copy then alter that CFG and calculate follow etc
+
+
