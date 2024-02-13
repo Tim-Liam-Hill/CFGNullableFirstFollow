@@ -24,34 +24,35 @@ class SLRTable{
     #state_count = 0;
     #slr_table = null;
     #accept_cfg_mapping;
-    static EOS_SYMBOL = String.fromCharCode(0); //TODO: can we run into issues if this symbol is used elswhere in the grammar? How to choose this symbol?
-    //Realistically, the grammar will only comprise of human readable symbols so this should avoid any issues
-    //Just need to test for implicit conversion errors that might occur I guess. 
-    //-- Just Tested -- it won't work because of how Javascript implicitly converts this to the 
-    //string '\x00' (as in, it consists of 4 different chars now)
+    static EOS_symbol = "$$$"; //TODO: is there a programmatic way to generate this?
+                                //how do we ensure we don't run into issues when a grammar
+                                //can potentially generate a token equivalent to this EOS_symbol
     
-
-    constructor(cfg_){
-        this.#cfg = cfg_.deepCopy();
+    /*
+        Changing things up a bit.
+        This class will take in the string that represents a cfg because it makes things a whole lot 
+        more convenient to do it this way. It makes it easier to create a new cfg that has a new start state
+        added while keeping things still working with the other code I have written so far (that needs to be
+        cleaned up I will admit).
+    */
+    constructor(cfg_string){
+        let initial_cfg = new Lang.CFG(cfg_string);
         
         //Need to add a new start state. For now, let's just keep it simple:
         //Keep concattenating existing start state symbol to itself until we have something unique 
-        let new_start_symbol = this.#cfg.getStartSymbol();
+        let new_start_symbol = initial_cfg.start_symbol;
         
         //TODO: WRITE TESTS TO TRY AND BREAK THE BELOW.
         do{
-            new_start_symbol = new_start_symbol + new_start_symbol;
-        }while(this.#cfg.getNonTerminals().includes(new_start_symbol) || this.#cfg.getTerminals().includes(new_start_symbol));
+            new_start_symbol = new_start_symbol + initial_cfg.start_symbol;
+        }while(initial_cfg.non_terminals.includes(new_start_symbol) || initial_cfg.terminals.includes(new_start_symbol));
 
         console.log("New Start symbol for cfg generated to be: ", new_start_symbol);
-        //I want to ensure that order is maintained, that is, the new symbol appears first 
-        //in non-terminal array and new prod is first in prods array (since code I wrote before
-        //getting to this point may be affected if this isn't the case.)
-        //Naturally I'll have to clean this up at some point, that is a job for once this is working
-        //I guess??
-        this.#cfg.non_terminals.unshift(new_start_symbol);
-        this.#cfg.productions[new_start_symbol] = [this.#cfg.start_symbol];
-        this.#cfg.start_symbol = new_start_symbol;
+
+        //create a new cfg with a new production at the beginning. Easier to do this with string
+        //Surprisingly (maintains order better)
+        let cfg_string_2 = new_start_symbol+":="+initial_cfg.start_symbol+"\n"+cfg_string;
+        this.#cfg = new Lang.CFG(cfg_string_2);
         this.#cfg.print();
 
         this.#nullable = new Lang.Nullable(this.#cfg);
@@ -62,6 +63,21 @@ class SLRTable{
         
         this.#nfa = new FSA.FSA(this.#nfa);
         this.#dfa = this.#nfa.convert();
+
+        //Now we do something interesting:
+        //Create a new CFG (I know) so we can add the production
+        // S^^:=S^ $
+        //Where S^^ is new start state, S^ is old start state and $ is EOS_symbol
+        //We only do this since we need a follow set for that grammar to create the SLR
+        //table
+        let cfg_string_3 = new_start_symbol + initial_cfg.start_symbol +":=" +new_start_symbol+" "+SLRTable.EOS_symbol+"\n"+cfg_string_2;
+        let final_cfg = new Lang.CFG(cfg_string_3);
+        let nullable2 = new Lang.Nullable(final_cfg);
+        let first2 = new Lang.First(final_cfg, nullable2);
+        let final_follow = new Lang.Follow(final_cfg, nullable2, first2);
+        final_follow.print();
+        console.log("_)(_()_(_");
+        this.#follow = final_follow;
         this.#createSLRTable();
         
     }
@@ -173,6 +189,8 @@ class SLRTable{
 
         for(let state in this.#dfa.getStates()){
             this.#slr_table[state] = JSON.parse(JSON.stringify(this.#dfa.getAlphabet()));
+            this.#slr_table[state][SLRTable.EOS_symbol] = []; //The EOS symbol is not part of the alphabet
+                                                                //for the above DFA
             
             for(let symb in this.#dfa.getStates()[state]){
                 if(this.#dfa.getStates()[state][symb][0] != ''){//For our DFA, the empty string represents a transition to the error state, so valid transitions are ones that don't go to this state
@@ -221,7 +239,7 @@ class SLRTable{
                 for(let accept_symbol of follow_symbols_N){
 
                     if(this.#slr_table[state][accept_symbol].length != 0){
-                        console.error("Conflict in SLR table for ", state, " symbol ", symb);
+                        console.error("Conflict in SLR table for ", state, " symbol ", accept_symbol);
                         throw "Grammar Error";
                     }
 
@@ -231,7 +249,7 @@ class SLRTable{
 
         }
         
-        console.log(this.#slr_table);
+        console.log(JSON.stringify(this.#slr_table));
     }
 
     /*

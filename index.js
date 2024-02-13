@@ -23,7 +23,7 @@ follow.print();
 
 console.log("-----SLR TABLE-------");
 console.log();
-const slr = new SLR.SLRTable(cfg);
+const slr = new SLR.SLRTable(input);
 
 //Best thing to do here is to take some small example grammars and by hand construct the resulting 
 //SLR table (using the tools that already exist to calculate nullable, first, follow)
