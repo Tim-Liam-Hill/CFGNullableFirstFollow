@@ -1,6 +1,13 @@
 const Lang = require("./NullableFollowFirst.js"); //Can't think of a better name
 const FSA = require("./FSA.js");
 
+
+const ACTIONS = Object.freeze({ 
+    GO: "go", 
+    SHIFT: "shift",
+    REDUCE: "reduce"
+}); 
+
 /*
     This class takes in a CFG (not a string, an object), calculates First, Nullable, Follow and
     creates an SLR table to be used for a parse/compiler 
@@ -15,6 +22,7 @@ class SLRTable{
     #dfa = null; 
     #state_count = 0;
     #slr_table = null;
+    
 
     constructor(cfg_){
         this.#cfg = cfg_;
@@ -136,7 +144,24 @@ class SLRTable{
             this.#slr_table[state] = JSON.parse(JSON.stringify(this.#dfa.getAlphabet()));
             
             for(let symb in this.#dfa.getStates()[state]){
-                console.log(symb, " ", this.#dfa.getStates()[state][symb]);
+                if(this.#dfa.getStates()[state][symb][0] != ''){//For our DFA, the empty string represents a transition to the error state, so valid transitions are ones that don't go to this state
+                    console.log("State: ", state, " has transitions for symbol ", symb, " , adding to SLR table");
+                    
+                    if(this.#slr_table[state][symb].length != 0){
+                        console.error("Conflict in SR table for ", state, " symbol ", symb);
+                        throw "Grammar Error";
+                    }
+
+                    if(this.#cfg.getNonTerminals().includes(symb)){
+                        console.log("Transition on non-terminal ", symb, " adding go");
+                        this.#slr_table[state][symb] = [ACTIONS.GO, this.#dfa.getStates()[state][symb][0]];
+                    }
+                    else{
+                        console.log("Transition on terminal ", symb, " adding shift");
+                        this.#slr_table[state][symb] = [ACTIONS.SHIFT, this.#dfa.getStates()[state][symb][0]];
+                    }
+                
+                }
             }
         
         }
@@ -148,5 +173,6 @@ class SLRTable{
 }
 
 module.exports = {
-    SLRTable: SLRTable
+    SLRTable: SLRTable,
+    Actions: ACTIONS
 }
