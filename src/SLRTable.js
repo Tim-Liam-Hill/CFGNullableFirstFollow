@@ -78,6 +78,7 @@ class SLRTable{
         let final_follow = new Lang.Follow(final_cfg, nullable2, first2);
         this.#follow = final_follow;
         this.#createSLRTable();
+        console.log(JSON.stringify(this.#slr_table));
         
     }
     
@@ -134,7 +135,7 @@ class SLRTable{
                 }
                 this.#nfa["states"][this.#state_count.toString()] = {}; //need to add the accept state at the end of each mini nfa 
                 this.#nfa["accept"].push(this.#state_count.toString());
-                accept_cfg_mapping[this.#state_count.toString()] = {non_terminal, prod};
+                accept_cfg_mapping[this.#state_count.toString()] = [non_terminal, prod];
                 this.#state_count += 1; //need to increment again! Otherwise we will add transitions to the previous accept state
             }
         }
@@ -183,7 +184,7 @@ class SLRTable{
     * Make sure we don't over-ride any previous rules (if we do it means ambiguous grammar/not SLR parsable)
     */
     #createSLRTable(){
-        this.#dfa.show();
+
         this.#slr_table = {};
 
         for(let state in this.#dfa.getStates()){
@@ -234,7 +235,7 @@ class SLRTable{
 
             for(let accept_state of accepts){
                 logger.debug("Accept state " + accept_state + " corresponds to production " + this.#accept_cfg_mapping[accept_state]);
-                let follow_symbols_N = this.#follow.getFollow()[this.#accept_cfg_mapping[accept_state].non_terminal];
+                let follow_symbols_N = this.#follow.getFollow()[this.#accept_cfg_mapping[accept_state][0]];
                 for(let accept_symbol of follow_symbols_N){
 
                     if(this.#slr_table[state][accept_symbol].length != 0){
@@ -242,7 +243,14 @@ class SLRTable{
                         throw "Grammar Error";
                     }
 
-                    this.#slr_table[state][accept_symbol] = [ACTIONS.REDUCE, this.#accept_cfg_mapping[accept_state]];
+                    //if we are adding a reduce for the initial production it should actually be an accept
+                    //initial production can be found using the start symbol
+                    if(this.#accept_cfg_mapping[accept_state][0] == this.#cfg.start_symbol){
+                        this.#slr_table[state][accept_symbol] = [ACTIONS.ACCEPT];
+                    }
+                    else{
+                        this.#slr_table[state][accept_symbol] = [ACTIONS.REDUCE, this.#accept_cfg_mapping[accept_state]]
+                    }
                 }
             }
 
@@ -251,10 +259,64 @@ class SLRTable{
     }
 
     /*
-        Use the SLR table to parse the given input and create the corresponding AST
+        Use the SLR table to parse the given input and create the corresponding AST.
+        Note: we are assuming a lexer has already created tokens for us, so the input 
+        is just an array of tokens in the order they appear. 
     */
-    buildAST(input){
+    buildAST(tokens){
+        this.#dfa.show();
+        let stack = [this.#dfa.getStart()];
+        tokens.push(SLRTable.EOS_symbol); //treated like a queue
 
+        while(stack.length != 0){
+            logger.debug("Stack: " + stack);
+            logger.debug("Tokens: " + tokens);
+
+            let state = stack[stack.length-1];
+            let token = tokens[0];
+
+            if(this.#slr_table[state][token].length == 0){
+                console.error("Conflict no valid transition in SLR table, input is not a valid string for CFG");
+                throw "Input Language error";
+            }
+
+            switch(this.#slr_table[state][token][0]){
+                case ACTIONS.SHIFT: 
+                        logger.debug("Shifting for state " + state + " and token " + token);
+                        stack.push(token);
+                        stack.push(this.#slr_table[state][token][1]);
+                        tokens.shift();
+                    break;
+                case ACTIONS.REDUCE:
+                    logger.debug("Reducing for state " + state + " and token " + token + " with production " + this.#slr_table[state][token][1][0] + ":=" + this.#slr_table[state][token][1][1]);
+                    let prod_length = this.#slr_table[state][token][1][1].replace(new RegExp(Lang.CFG.RHS_separator, "g"), "").length;
+
+                    let popped_elements = stack.slice(stack.length - 2*(prod_length)); 
+                    stack = stack.slice(0, stack.length - 2*(prod_length)); //splice doesn't affect original array so this is how we pop all those elements at once 
+                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
+
+                    for(let i = 0; i<expected_elements.length && popped_elements.length != 0; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
+                        if(popped_elements[2*i] != expected_elements[i]){                           //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
+                            console.error("Error when reducing: expected tokens do not align with production"); //double index for popped elements since it has states interleaved
+                            throw "Input Language error";
+                        }
+                    }
+
+                    let go_state = this.#slr_table[stack[stack.length-1]][this.#slr_table[state][token][1][0]];
+                    logger.debug("GO state: " + go_state);
+                    if(go_state.length ==0 || go_state[0] != ACTIONS.GO){
+                        console.error("Error when reducing: no go state to follow after reducing by production");
+                        throw "Input Language error";
+                    }
+
+                    stack.push(this.#slr_table[state][token][1][0]);
+                    stack.push(go_state[1]);
+                    break;
+                case ACTIONS.ACCEPT:
+                    return
+            }
+
+        }
     }
 
 }

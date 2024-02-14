@@ -16,6 +16,7 @@ The input should be a Context free grammar in which:
 * A null production has an empty RHS
 * No spaces between := and LHS/RHS
 * First line LHS symbol is start symbol and only appears on LHS of production once
+* First line must always be start symbol production.
 
 Example:
 
@@ -52,3 +53,9 @@ The first state for the nfa should correlate to the start state of the CFG, so m
 * Fix the private variable aspect of FSA and related classes
 
 There isn't really a point to having private variables with get methods in the FSA class if we are returning references. This will lead to bugs if any other code alters the returned object. Either change the getters somehow or just remove the getters entirely and treat these classes more as structs.
+
+#### Lexical Analysis
+
+A nice idea would be to add onto this tool by allowing for lexical analysis. That is to say: allow a user to map a regular expression to a non-terminal in the CFG. That way, you can input a CFG, regular expressions for the terminals and an example string to see if said string is a valid program given the definitions provided. 
+
+Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator.
