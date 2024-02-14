@@ -38,7 +38,7 @@ The 3 sets describing the nullable, first and follow for each non-terminal.
 * better names for files and classes
 * unit tests - add one for CFG start symbol.
 * Decide on limits/structure that initial CFG file has to adhere to.
-* Incorporate with other tools (NFA to DFA converter)
+* Incorporate with other tools (NFA to DFA converter) ✔
 * LOGGING!!!!
 * Linter
 * Maybe make the logic a bit clearer at places (aka: come back a few months after this is done and see how to make it read better. Iteration could definitely be a bit better).

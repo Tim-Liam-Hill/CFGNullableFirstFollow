@@ -1,5 +1,6 @@
 const Lang = require("./NullableFollowFirst.js"); //Can't think of a better name
 const FSA = require("./FSA.js");
+const logger = require("./logger.js");
 
 
 const ACTIONS = Object.freeze({ 
@@ -47,7 +48,7 @@ class SLRTable{
             new_start_symbol = new_start_symbol + initial_cfg.start_symbol;
         }while(initial_cfg.non_terminals.includes(new_start_symbol) || initial_cfg.terminals.includes(new_start_symbol));
 
-        console.log("New Start symbol for cfg generated to be: ", new_start_symbol);
+        logger.debug("New Start symbol for cfg generated to be: ", new_start_symbol);
 
         //create a new cfg with a new production at the beginning. Easier to do this with string
         //Surprisingly (maintains order better)
@@ -75,8 +76,6 @@ class SLRTable{
         let nullable2 = new Lang.Nullable(final_cfg);
         let first2 = new Lang.First(final_cfg, nullable2);
         let final_follow = new Lang.Follow(final_cfg, nullable2, first2);
-        final_follow.print();
-        console.log("_)(_()_(_");
         this.#follow = final_follow;
         this.#createSLRTable();
         
@@ -194,19 +193,19 @@ class SLRTable{
             
             for(let symb in this.#dfa.getStates()[state]){
                 if(this.#dfa.getStates()[state][symb][0] != ''){//For our DFA, the empty string represents a transition to the error state, so valid transitions are ones that don't go to this state
-                    console.log("State: ", state, " has transitions for symbol ", symb, " , adding to SLR table");
+                    logger.debug("State: " + state + " has transitions for symbol " + symb + ", adding to SLR table");
                     
                     if(this.#slr_table[state][symb].length != 0){
-                        console.error("Conflict in SR table for ", state, " symbol ", symb);
+                        console.error("Conflict in SR table for " + state + " symbol "+ symb);
                         throw "Grammar Error";
                     }
 
                     if(this.#cfg.getNonTerminals().includes(symb)){
-                        console.log("Transition on non-terminal ", symb, " adding go");
+                        logger.debug("Transition on non-terminal " + symb+ " adding go");
                         this.#slr_table[state][symb] = [ACTIONS.GO, this.#dfa.getStates()[state][symb][0]];
                     }
                     else{
-                        console.log("Transition on terminal ", symb, " adding shift");
+                        logger.debug("Transition on terminal " + symb + " adding shift");
                         this.#slr_table[state][symb] = [ACTIONS.SHIFT, this.#dfa.getStates()[state][symb][0]];
                     }
                 }
@@ -223,7 +222,7 @@ class SLRTable{
             //1) Which sub-states (if any) in the dfa state are accept states in the nfa (easy)
             //2) Which production rules in the CFG these accept states map to (slightly harder)
 
-            console.log("Checking for reduce rules for DFA state ", state);
+            logger.debug("Checking for reduce rules for DFA state " + state);
             const sub_states = state.split("-");
             let accepts = [];
             for(let s of sub_states){
@@ -231,15 +230,15 @@ class SLRTable{
                     accepts.push(s);
             }
 
-            console.log("DFA state ", state, " contains following accept states ", accepts);
+            logger.debug("DFA state " + state + " contains following accept states " + accepts);
 
             for(let accept_state of accepts){
-                console.log("Accept state ", accept_state, " corresponds to production ", this.#accept_cfg_mapping[accept_state]);
+                logger.debug("Accept state " + accept_state + " corresponds to production " + this.#accept_cfg_mapping[accept_state]);
                 let follow_symbols_N = this.#follow.getFollow()[this.#accept_cfg_mapping[accept_state].non_terminal];
                 for(let accept_symbol of follow_symbols_N){
 
                     if(this.#slr_table[state][accept_symbol].length != 0){
-                        console.error("Conflict in SLR table for ", state, " symbol ", accept_symbol);
+                        console.error("Conflict in SLR table for " + state + " symbol " + accept_symbol);
                         throw "Grammar Error";
                     }
 
@@ -249,7 +248,6 @@ class SLRTable{
 
         }
         
-        console.log(JSON.stringify(this.#slr_table));
     }
 
     /*
