@@ -10,6 +10,35 @@ const ACTIONS = Object.freeze({
     ACCEPT: "accept"
 }); 
 
+class ASTNode{ //glorified struct I suppose. 
+            //I want to keep this as simple as possible
+            //to make it generic. It will be up to the user to interpret whether a token is correctly
+            //a terminal or non-terminal (obviously terminals should have no children)
+
+    token = null;
+    children = null; 
+    constructor(){
+
+    }
+
+    print(){
+        this.printRecursive(1);
+    }
+
+    printRecursive(level){
+        console.log(" ".repeat(level) + "|-" + this.token);
+
+        if(this.children == null)
+            return;
+
+        for(let child of this.children){
+            child.printRecursive(level +1);
+        }
+    }
+
+}
+
+
 /*
     This class takes in a CFG (not a string, an object), calculates First, Nullable, Follow and
     creates an SLR table to be used for a parse/compiler 
@@ -263,7 +292,84 @@ class SLRTable{
         Note: we are assuming a lexer has already created tokens for us, so the input 
         is just an array of tokens in the order they appear. 
     */
-    buildAST(tokens){
+    buildAST(t){
+        let tokens = JSON.parse(JSON.stringify(t));
+        this.#dfa.show();
+        let stack = [this.#dfa.getStart()];
+        tokens.push(SLRTable.EOS_symbol); //tokens is treated like a queue
+
+        while(stack.length != 0){
+            logger.debug("Stack: " + stack);
+            logger.debug("Tokens: " + tokens);
+
+            let state = stack[stack.length-1];
+            let token = tokens[0];
+
+            if(this.#slr_table[state][token].length == 0){
+                console.error("Conflict no valid transition in SLR table, input is not a valid string for CFG");
+                throw "Input Language error";
+            }
+
+            switch(this.#slr_table[state][token][0]){
+                case ACTIONS.SHIFT: 
+                        logger.debug("Shifting for state " + state + " and token " + token);
+                        let node = new ASTNode();
+                        node.token = token;
+                        stack.push(node);
+                        stack.push(this.#slr_table[state][token][1]);
+                        tokens.shift();
+                    break;
+                case ACTIONS.REDUCE:
+                    logger.debug("Reducing for state " + state + " and token " + token + " with production " + this.#slr_table[state][token][1][0] + ":=" + this.#slr_table[state][token][1][1]);
+                    let prod_length = this.#slr_table[state][token][1][1].replace(new RegExp(Lang.CFG.RHS_separator, "g"), "").length;
+
+                    let popped_elements = stack.slice(stack.length - 2*(prod_length)); 
+                    stack = stack.slice(0, stack.length - 2*(prod_length)); //splice doesn't affect original array so this is how we pop all those elements at once 
+                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
+
+                    let node1 = new ASTNode(); //"cannot declare block scoped variable" but my son, it is in a different case statement
+                                            //still, it technically is right since the break and case keywords don't define block boundaries
+                    node1.token = this.#slr_table[state][token][1][0];
+                    node1.children = [];
+
+                    if(popped_elements.length == 0){ //need this so we don't lose out on nodes for which a non-terminal transitions to empty string
+                        let temp = new ASTNode();
+                        temp.token = "";
+                        popped_elements.push(temp);
+                    }
+
+                    for(let i = 0; i<expected_elements.length; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
+                        if(popped_elements[2*i].token != expected_elements[i]){                           //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
+                            console.error("Error when reducing: expected tokens do not align with production"); //double index for popped elements since it has states interleaved
+                            throw "Input Language error";
+                        }
+                        node1.children.push(popped_elements[2*i]);
+                    }
+
+                    let go_state = this.#slr_table[stack[stack.length-1]][this.#slr_table[state][token][1][0]];
+                    logger.debug("GO state: " + go_state);
+                    if(go_state.length ==0 || go_state[0] != ACTIONS.GO){
+                        console.error("Error when reducing: no go state to follow after reducing by production");
+                        throw "Input Language error";
+                    }
+
+                    stack.push(node1);
+                    stack.push(go_state[1]);
+                    break;
+                case ACTIONS.ACCEPT:
+                    return stack[1];
+            }
+
+        }
+    }
+
+    /**
+     * 
+     * Same algorithm as buildAST accept it just checks if the input string is valid. Keeping it around 
+     * just in case. It is nicer to use this for debug logging at the moment
+     */
+    validate(t){
+        let tokens = JSON.parse(JSON.stringify(t));
         this.#dfa.show();
         let stack = [this.#dfa.getStart()];
         tokens.push(SLRTable.EOS_symbol); //treated like a queue
@@ -323,5 +429,6 @@ class SLRTable{
 
 module.exports = {
     SLRTable: SLRTable,
-    Actions: ACTIONS
+    Actions: ACTIONS,
+    ASTNode: ASTNode
 }

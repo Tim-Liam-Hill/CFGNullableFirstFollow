@@ -8,14 +8,14 @@ if(process.argv.length < 3){
     process.exit(1);
 }
 
-let loglevel = "info";
-
 const file_path = process.argv[2] ;
 const input = fs.readFileSync(file_path).toString();
 
 const slr = new SLR.SLRTable(input);
 const tokens = ["a","a","b","b","b","c","c"];
-slr.buildAST(tokens);
+slr.validate(tokens);
+let tree = slr.buildAST(tokens);
+tree.print();
 
 //Best thing to do here is to take some small example grammars and by hand construct the resulting 
 //SLR table (using the tools that already exist to calculate nullable, first, follow)

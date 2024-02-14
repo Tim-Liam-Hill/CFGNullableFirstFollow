@@ -58,4 +58,6 @@ There isn't really a point to having private variables with get methods in the F
 
 A nice idea would be to add onto this tool by allowing for lexical analysis. That is to say: allow a user to map a regular expression to a non-terminal in the CFG. That way, you can input a CFG, regular expressions for the terminals and an example string to see if said string is a valid program given the definitions provided. 
 
-Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator.
+Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator. 
+
+If we build this we could actually solve some problems for the SLR table parser and convert it to work on tokens (ie a token class) and not strings.
