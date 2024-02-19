@@ -11,6 +11,17 @@ if(process.argv.length < 3){
 const file_path = process.argv[2] ;
 const input = fs.readFileSync(file_path).toString();
 
+/*
+const c = new imports.CFG(input);
+const n = new imports.Nullable(c);
+const first = new imports.First(c,n);
+const follow = new imports.Follow(c,n,first);
+c.print();
+n.print();
+first.print();
+follow.print();
+*/
+
 const slr = new SLR.SLRTable(input);
 const tokens = ["a","a","b","b","b","c","c"];
 slr.validate(tokens);

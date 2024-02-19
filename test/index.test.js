@@ -1,4 +1,5 @@
 const imports = require("../src/NullableFollowFirst.js")
+const SLR = require("../src/SLRTable.js");
 
 //CFG Test ------------------------------------------------------------------
 //TODO: add tests for start symbol 
@@ -189,3 +190,18 @@ test('More complex grammar: multiple non_terminals in one rule', () => {
     expect({"A": [], "G": ["bees","m"], "H": ["bees"], "F":["s"], "T":["r"], "Z":["s","x"]}).toMatchObject(follow.getFollow());
 });
 
+
+//SLR Tests -------------------------------------------------------------------------------
+//Not sure how best to test the SLR table
+//My thinking is that I should test whether or not the resultant SLR table 
+//can correctly parse input languages for certain grammars, but I likely should test 
+//the actual contents of the SLR table itself. 
+
+test('Simple Context Free Grammar with epsilon transitions', () => {
+    const grammar = "T:=R\nT:=a T c\nR:=\nR:=b R";
+    const tokens = ["a","a","b","b","b","c","c"];
+    const slr_table = new SLR.SLRTable(grammar);
+
+
+
+});

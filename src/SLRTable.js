@@ -1,7 +1,7 @@
 const Lang = require("./NullableFollowFirst.js"); //Can't think of a better name
 const FSA = require("./FSA.js");
 const logger = require("./logger.js");
-
+const fs = require("fs"); //TODO: Delete me 
 
 const ACTIONS = Object.freeze({ 
     GO: "go", 
@@ -108,7 +108,7 @@ class SLRTable{
         this.#follow = final_follow;
         this.#createSLRTable();
         console.log(JSON.stringify(this.#slr_table));
-        
+        console.log(this.#dfa.getStart())
     }
     
     /*
@@ -260,7 +260,8 @@ class SLRTable{
                     accepts.push(s);
             }
 
-            logger.debug("DFA state " + state + " contains following accept states " + accepts);
+            if(accepts.length != 0)
+                logger.debug("DFA state " + state + " contains following accept states " + accepts);
 
             for(let accept_state of accepts){
                 logger.debug("Accept state " + accept_state + " corresponds to production " + this.#accept_cfg_mapping[accept_state]);
@@ -268,6 +269,7 @@ class SLRTable{
                 for(let accept_symbol of follow_symbols_N){
 
                     if(this.#slr_table[state][accept_symbol].length != 0){
+
                         console.error("Conflict in SLR table for " + state + " symbol " + accept_symbol);
                         throw "Grammar Error";
                     }
@@ -294,7 +296,6 @@ class SLRTable{
     */
     buildAST(t){
         let tokens = JSON.parse(JSON.stringify(t));
-        this.#dfa.show();
         let stack = [this.#dfa.getStart()];
         tokens.push(SLRTable.EOS_symbol); //tokens is treated like a queue
 
@@ -310,7 +311,7 @@ class SLRTable{
                 throw "Input Language error";
             }
 
-            switch(this.#slr_table[state][token][0]){
+            switch(this.#slr_table[state][token][0]){ //TODO: clean this up by moving first two cases into separate functions. It will read better that way
                 case ACTIONS.SHIFT: 
                         logger.debug("Shifting for state " + state + " and token " + token);
                         let node = new ASTNode();
@@ -319,13 +320,16 @@ class SLRTable{
                         stack.push(this.#slr_table[state][token][1]);
                         tokens.shift();
                     break;
-                case ACTIONS.REDUCE:
+                case ACTIONS.REDUCE: 
                     logger.debug("Reducing for state " + state + " and token " + token + " with production " + this.#slr_table[state][token][1][0] + ":=" + this.#slr_table[state][token][1][1]);
-                    let prod_length = this.#slr_table[state][token][1][1].replace(new RegExp(Lang.CFG.RHS_separator, "g"), "").length;
+                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
+                    
+                    //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
+                    //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
+                    let prod_length = expected_elements[0] === '' ? 0: expected_elements.length
 
                     let popped_elements = stack.slice(stack.length - 2*(prod_length)); 
                     stack = stack.slice(0, stack.length - 2*(prod_length)); //splice doesn't affect original array so this is how we pop all those elements at once 
-                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
 
                     let node1 = new ASTNode(); //"cannot declare block scoped variable" but my son, it is in a different case statement
                                             //still, it technically is right since the break and case keywords don't define block boundaries
@@ -340,7 +344,7 @@ class SLRTable{
 
                     for(let i = 0; i<expected_elements.length; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
                         if(popped_elements[2*i].token != expected_elements[i]){                           //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
-                            console.error("Error when reducing: expected tokens do not align with production"); //double index for popped elements since it has states interleaved
+                            console.error("Error when reducing: stack tokens do not align with production"); //double index for popped elements since it has states interleaved
                             throw "Input Language error";
                         }
                         node1.children.push(popped_elements[2*i]);
@@ -395,14 +399,20 @@ class SLRTable{
                     break;
                 case ACTIONS.REDUCE:
                     logger.debug("Reducing for state " + state + " and token " + token + " with production " + this.#slr_table[state][token][1][0] + ":=" + this.#slr_table[state][token][1][1]);
-                    let prod_length = this.#slr_table[state][token][1][1].replace(new RegExp(Lang.CFG.RHS_separator, "g"), "").length;
+                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
+                    
+                    //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
+                    //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
+                    let prod_length = expected_elements[0] === '' ? 0: expected_elements.length
 
                     let popped_elements = stack.slice(stack.length - 2*(prod_length)); 
                     stack = stack.slice(0, stack.length - 2*(prod_length)); //splice doesn't affect original array so this is how we pop all those elements at once 
-                    let expected_elements = this.#slr_table[state][token][1][1].split(Lang.CFG.RHS_separator);
 
-                    for(let i = 0; i<expected_elements.length && popped_elements.length != 0; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
-                        if(popped_elements[2*i] != expected_elements[i]){                           //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
+                    console.log(expected_elements);
+                    console.log(popped_elements);
+
+                    for(let i = 0; i<expected_elements.length && popped_elements.length != 0; i++){ 
+                        if(popped_elements[2*i] != expected_elements[i]){                           
                             console.error("Error when reducing: expected tokens do not align with production"); //double index for popped elements since it has states interleaved
                             throw "Input Language error";
                         }
@@ -423,6 +433,10 @@ class SLRTable{
             }
 
         }
+    }
+
+    printAsString(){
+        console.log(JSON.stringify(this.#slr_table));
     }
 
 }

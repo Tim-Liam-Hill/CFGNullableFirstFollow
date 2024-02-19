@@ -448,7 +448,7 @@ class Follow{
             }
             else{ //everything in the trailing non_terminal's follow get's added to current non_terminal's 
                     //follow. Break if not nullable
-                
+                console.log(rhs_arr[k]);
                 for(let add_symbol of first.getFirst()[rhs_arr[k]]){
                     if(! this.#follow[rhs_arr[index]].includes(add_symbol)){
                         this.#follow[rhs_arr[index]].push(add_symbol);

@@ -54,10 +54,19 @@ The first state for the nfa should correlate to the start state of the CFG, so m
 
 There isn't really a point to having private variables with get methods in the FSA class if we are returning references. This will lead to bugs if any other code alters the returned object. Either change the getters somehow or just remove the getters entirely and treat these classes more as structs.
 
+* rename resultant DFA states
+
+It is convenient to have DFA states be comprised of all the NFA substates that make up this state, but once all calculations are complete and there are no conflicts it is best to rename these states since the DFA states have very long names, making the resultant table far larger than needed. This only really matters if the table is going to be printed out and used elsewhere but it is still a nice thing to do in my opinion. 
+
 #### Lexical Analysis
 
-A nice idea would be to add onto this tool by allowing for lexical analysis. That is to say: allow a user to map a regular expression to a non-terminal in the CFG. That way, you can input a CFG, regular expressions for the terminals and an example string to see if said string is a valid program given the definitions provided. 
+A nice idea would be to add onto this tool by allowing for lexical analysis. That is to say: allow a user to map a regular expression to a non-terminal in the CFG. That way, you can input a CFG, regular expressions for the terminals and an example string to see if said string is a valid program given the definitions provided.
 
-Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator. 
+Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator.
 
 If we build this we could actually solve some problems for the SLR table parser and convert it to work on tokens (ie a token class) and not strings.
+
+
+* regex engine
+
+We are basically halfway there since we have the NFA/DFA converter, so that will probably be what I do next. I might want to do it in a different language though (to spice things up)
