@@ -56,7 +56,12 @@ There isn't really a point to having private variables with get methods in the F
 
 * rename resultant DFA states
 
-It is convenient to have DFA states be comprised of all the NFA substates that make up this state, but once all calculations are complete and there are no conflicts it is best to rename these states since the DFA states have very long names, making the resultant table far larger than needed. This only really matters if the table is going to be printed out and used elsewhere but it is still a nice thing to do in my opinion. 
+It is convenient to have DFA states be comprised of all the NFA substates that make up this state, but once all calculations are complete and there are no conflicts it is best to rename these states since the DFA states have very long names, making the resultant table far larger than needed. This only really matters if the table is going to be printed out and used elsewhere but it is still a nice thing to do in my opinion.
+
+* Throw better errors, put error message in the exception, don't log it to console
+* Have a way of specifying regex for non-terminals in the cfg file itself (similar to [how the python implementation seems to do it](https://github.com/python/cpython/blob/main/Grammar/python.gram)). This can be incorporated into a lexer of sorts.
+
+What we could do is have certain lines with a different separator (eg: instead of ":=" use ":>" and these lines are interpreted as RHS is non-terminal and LHS is regex expression for the valid values of that non-terminal). Will likely need to build my own Regex engine to handle that (which is fine since I wanted to do that anyway, but in c++. Can do it in both languages I suppose?)
 
 #### Lexical Analysis
 
@@ -65,7 +70,6 @@ A nice idea would be to add onto this tool by allowing for lexical analysis. Tha
 Will likely only get to this later: the lexer for my programming language is very simple so I haven't needed to create a generalized lexer generator.
 
 If we build this we could actually solve some problems for the SLR table parser and convert it to work on tokens (ie a token class) and not strings.
-
 
 * regex engine
 

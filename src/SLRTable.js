@@ -109,6 +109,7 @@ class SLRTable{
         this.#createSLRTable();
         console.log(JSON.stringify(this.#slr_table));
         console.log(this.#dfa.getStart())
+        fs.writeFileSync("out.json", JSON.stringify(this.#slr_table))
     }
     
     /*
@@ -271,6 +272,7 @@ class SLRTable{
                     if(this.#slr_table[state][accept_symbol].length != 0){
 
                         console.error("Conflict in SLR table for " + state + " symbol " + accept_symbol);
+                        console.error(this.#slr_table[state][accept_symbol]);
                         throw "Grammar Error";
                     }
 
@@ -342,7 +344,7 @@ class SLRTable{
                         popped_elements.push(temp);
                     }
 
-                    for(let i = 0; i<expected_elements.length; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
+                    for(let i = 0; i<prod_length; i++){ //this check may not be necessary (according to psuedocode I am following) but I feel more comfortable with it here
                         if(popped_elements[2*i].token != expected_elements[i]){                           //second check in above for loop is edge case: if RHS of prod is empty then expected elements contains empty string but nothing is popped from stack. This is still considered correct 
                             console.error("Error when reducing: stack tokens do not align with production"); //double index for popped elements since it has states interleaved
                             throw "Input Language error";
@@ -370,7 +372,8 @@ class SLRTable{
     /**
      * 
      * Same algorithm as buildAST accept it just checks if the input string is valid. Keeping it around 
-     * just in case. It is nicer to use this for debug logging at the moment
+     * just in case. It is nicer to use this for debug logging at the moment but I will get rid of it eventually
+     * since buildAST does more than this so there is no real use case for this function
      */
     validate(t){
         let tokens = JSON.parse(JSON.stringify(t));
@@ -411,7 +414,7 @@ class SLRTable{
                     console.log(expected_elements);
                     console.log(popped_elements);
 
-                    for(let i = 0; i<expected_elements.length && popped_elements.length != 0; i++){ 
+                    for(let i = 0; i< prod_length != 0; i++){ 
                         if(popped_elements[2*i] != expected_elements[i]){                           
                             console.error("Error when reducing: expected tokens do not align with production"); //double index for popped elements since it has states interleaved
                             throw "Input Language error";

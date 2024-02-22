@@ -344,7 +344,7 @@ class First{
     }
 
     print(){
-        console.log(this.#first);
+        console.log("First: ", this.#first);
     }
 }
 
@@ -495,7 +495,7 @@ class Follow{
     }
 
     print(){
-        console.log(this.#follow);
+        console.log("Follow: ", this.#follow);
     }
 
     getFollow(){
